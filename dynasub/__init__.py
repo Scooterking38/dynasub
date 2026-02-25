@@ -2,20 +2,19 @@ import re
 import inspect
 import importlib.util
 
-# Get the caller's frame
 frame = inspect.stack()[1]
-
-# Get the module name from the caller's globals
 module_name = frame[0].f_globals['__name__']
-
-# Use importlib to get the source — works everywhere
 source = importlib.util.get_source(module_name)
 lines = source.splitlines(keepends=True)
 
-env = {}
+new_lines = []
 for line in lines[1:]:
     if re.search(r'\$\{(\w+)\}', line):
-        line = line.strip('"').strip("'")
-        line = re.sub(r'\$\{(\w+)\}', r'{\1}', line)
-        line = f"exec(f{repr(line.strip())}, globals())\n"
-    exec(line, env)
+        indent = line[:len(line) - len(line.lstrip())]  # preserve indentation
+        inner = line.strip().strip('"').strip("'")
+        inner = re.sub(r'\$\{(\w+)\}', r'{\1}', inner)
+        new_lines.append(f"{indent}exec(f{repr(inner)}, globals())\n")
+    else:
+        new_lines.append(line)
+
+exec(''.join(new_lines))
