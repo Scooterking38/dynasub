@@ -1,8 +1,16 @@
-import re, inspect
+import re
+import inspect
+import importlib.util
 
-path = inspect.stack()[1].filename
-with open(path) as f:
-    lines = f.readlines()
+# Get the caller's frame
+frame = inspect.stack()[1]
+
+# Get the module name from the caller's globals
+module_name = frame[0].f_globals['__name__']
+
+# Use importlib to get the source — works everywhere
+source = importlib.util.get_source(module_name)
+lines = source.splitlines(keepends=True)
 
 env = {}
 for line in lines[1:]:
