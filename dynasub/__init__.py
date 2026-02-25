@@ -15,6 +15,7 @@ lines = source.splitlines(keepends=True)
 env = {}
 for line in lines[1:]:
     if re.search(r'\$\{(\w+)\}', line):
+        line = line.strip('"').strip("'")
         line = re.sub(r'\$\{(\w+)\}', r'{\1}', line)
         line = f"exec(f{repr(line.strip())}, globals())\n"
     exec(line, env)
