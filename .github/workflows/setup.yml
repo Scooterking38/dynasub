@@ -30,18 +30,18 @@ jobs:
           if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
             VERSION=${{ github.event.inputs.version }}
           fi
-          sed -i "s/version = \"0.0.0\"/version = \"$VERSION\"/" $GITHUB_WORKSPACE/dynasub_pkg/pyproject.toml
+          sed -i "s/version = \"0.0.0\"/version = \"$VERSION\"/" $GITHUB_WORKSPACE/dynasub_pkg2/pyproject.toml
 
       - name: Install build tools
         run: pip install build twine
 
       - name: Build
-        working-directory: ${{ github.workspace }}/dynasub_pkg
+        working-directory: ${{ github.workspace }}/dynasub_pkg2
         run: python -m build
 
       - name: Publish to PyPI
-        working-directory: ${{ github.workspace }}/dynasub_pkg
+        working-directory: ${{ github.workspace }}/dynasub_pkg2
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
