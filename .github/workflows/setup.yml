@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 1.1.1)'
+        required: true
 
 jobs:
   publish:
@@ -23,7 +28,12 @@ jobs:
 
       - name: Set version from tag
         shell: bash
-        run: sed -i "s/version = \"0.0.0\"/version = \"${GITHUB_REF_NAME#v}\"/" dynasub_pkg/pyproject.toml
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          fi
+          sed -i "s/version = \"0.0.0\"/version = \"$VERSION\"/" dynasub_pkg/pyproject.toml
 
       - name: Install build tools
         run: pip install build twine
