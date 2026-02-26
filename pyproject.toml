@@ -9,8 +9,8 @@ description = "Inline ${var} substitution via a custom codec"
 readme = "README.md"
 requires-python = ">=3.8"
 
+[tool.setuptools]
+py-modules = ["sitecustomize"]
+
 [tool.setuptools.packages.find]
 where = ["."]
-
-[tool.setuptools.package-data]
-dynasub = ["dynasub.pth"]
