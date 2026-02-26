@@ -36,4 +36,9 @@ info = codecs.CodecInfo(
     decode=decode
 )
 
-codecs.register(lambda n: info if n == 'dynasub' else None)
+def search(name):
+    if name.replace('-', '_') == "dynasub":
+        return info
+    return None
+
+codecs.register(search)
