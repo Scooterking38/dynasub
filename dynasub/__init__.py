@@ -1,16 +1,46 @@
-import subprocess, sys, os, inspect
+import re
+import codecs
 
-_this_dir = os.path.dirname(os.path.abspath(__file__))
+def transform(source):
+    lines = source.splitlines(keepends=True)
+    new_lines = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if re.match(r'["\']#\$', stripped):
+            indent = len(line) - len(line.lstrip())
+            block = []
+            while i < len(lines) and re.match(r'["\']#\$', lines[i].strip()):
+                s = lines[i].strip()
+                inner = re.sub(r'^["\']#\$\s?', '', s).rstrip('"\'')
+                inner = re.sub(r'\$\{(\w+)\}', r'{\1}', inner)
+                block.append(inner + '\n')
+                i += 1
+            block_str = repr(''.join(block))
+            new_lines.append(f"{' ' * indent}exec(f{block_str}, globals())\n")
+        else:
+            new_lines.append(line)
+            i += 1
+    return ''.join(new_lines)
 
-for frame in inspect.stack():
-    caller = os.path.abspath(frame[1])
-    if os.path.isfile(caller) and not caller.startswith(_this_dir):
-        break
+def decode(source_bytes, errors='strict'):
+    return transform(source_bytes.decode('utf-8', errors)), len(source_bytes)
 
-if not os.environ.get('DYNASUB'):
-    env = os.environ.copy()
-    env['DYNASUB'] = '1'
-    existing = [os.path.abspath(p) for p in env.get('PYTHONPATH', '').split(os.pathsep) if p]
-    env['PYTHONPATH'] = os.pathsep.join([os.path.dirname(caller)] + existing)
-    result = subprocess.run([sys.executable, '-m', 'dynasub', caller], env=env)
-    sys.exit(result.returncode)
+class IncrementalDecoder(codecs.IncrementalDecoder):
+    def decode(self, source_bytes, final=False):
+        return transform(source_bytes.decode('utf-8', self.errors))
+
+class StreamReader(codecs.StreamReader):
+    def decode(self, source_bytes, errors='strict'):
+        return decode(source_bytes, errors)
+
+info = codecs.CodecInfo(
+    name='dynasub',
+    encode=codecs.lookup('utf-8').encode,
+    decode=decode,
+    incrementaldecoder=IncrementalDecoder,
+    streamreader=StreamReader,
+)
+
+codecs.register(lambda name: info if name == 'dynasub' else None)
