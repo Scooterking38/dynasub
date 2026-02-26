@@ -1,0 +1,37 @@
+name: Setup and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Unzip package
+        run: unzip dynasub.zip
+
+      - name: Set version from tag
+        shell: bash
+        run: sed -i "s/version = \"0.0.0\"/version = \"${GITHUB_REF_NAME#v}\"/" dynasub_pkg/pyproject.toml
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build
+        working-directory: dynasub_pkg
+        run: python -m build
+
+      - name: Publish to PyPI
+        working-directory: dynasub_pkg
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload dist/*
