@@ -1,13 +1,13 @@
 [build-system]
 requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "dynasub"
-version = "0.2.0"
-description = "Dynasub source transformation codec"
-authors = [{ name = "Your Name" }]
+version = "0.0.0"
+description = "Use ${var} syntax to substitute variables into Python code at runtime"
+readme = "README.md"
 requires-python = ">=3.8"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[project.urls]
+Homepage = "https://github.com/scooterking38/dynasub"
