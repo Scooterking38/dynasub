@@ -37,8 +37,17 @@ info = codecs.CodecInfo(
 )
 
 def search(name):
-    if name.replace('-', '_') == "dynasub":
-        return info
-    return None
+    n = name.replace("-", "_").lower()
+    if "dynasub" not in n:
+        return None
+
+    utf8 = codecs.lookup("utf-8")
+
+    return codecs.CodecInfo(
+        name="dynasub",
+        encode=utf8.encode,
+        decode=decode,
+    )
 
 codecs.register(search)
+codecs._cache.clear()
